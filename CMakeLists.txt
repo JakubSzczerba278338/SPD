@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(my_project VERSION 0.1.0 LANGUAGES CXX)
+project(SPD VERSION 0.1.0 LANGUAGES CXX)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -12,7 +12,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 set(SOURCES
-    src/tasks.cpp
+    src/main.cpp
     # Add more source files here
 )
 
@@ -20,3 +20,4 @@ set(SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # TODO: add more targets, link libraries, and set include directories
+target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc)
