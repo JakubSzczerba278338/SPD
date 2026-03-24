@@ -64,8 +64,13 @@ std::vector<Task> complete_search(std::vector<Task> &tasks){
     }
     return best_permutation;
 }
-int main(){
-    std::string file_path = "/home/duzyk/SPD/SPD/taski.txt";
+int main(int argc, char* argv[]){
+    if(argc<2){
+        std::cout<<"Użycie: " << argv[0] <<" <ścieżka do pliku z taskami>"<<std::endl;
+        return 1;
+    }
+
+    std::string file_path = argv[1];
     std::vector<Task> tasks = Read_file(file_path);
     std::cout<<"Zbiór tasków:"<<std::endl<<tasks<<std::endl<<std::endl;
     std::vector<Task> v = complete_search(tasks); 
