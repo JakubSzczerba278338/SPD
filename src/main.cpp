@@ -2,7 +2,7 @@
 #include <iostream>
 #include <istream>
 #include <fstream>
-
+#include <algorithm>
 #include "Task.hh"
 
 /* 
@@ -34,7 +34,7 @@ std::vector<Task> Read_file(std::string file){
 /*
     Funkcja przyjmuje wektor zadań, liczy opóźnienie dla każdego z zadań i zwraca największą wartość opóźnienia spośród wszystkich zadań.
 */
-int Lmax(std::vector<Task> permutation){
+int Lmax(std::vector<Task> &permutation){
     int max_L = 0;
     int L = 0;
     int time = 0;
@@ -45,11 +45,29 @@ int Lmax(std::vector<Task> permutation){
     }
     return max_L;
 }
-
-int main(){
-    std::vector<Task> tasks = Read_file("taski.txt");
-    for(auto& task: tasks){
-        std::cout << task << std::endl;
+/*
+Implementacja Przeglądu Zupełnego - przyjmujemy referencję na wektor zadań i zwracamy permutację minimalizującą Lmax 
+*/
+std::vector<Task> complete_search(std::vector<Task> &tasks){
+    std::sort(tasks.begin(),tasks.end());
+    std::vector<Task> best_permutation = tasks;
+    int min_max_L = Lmax(tasks);
+    while(std::next_permutation(tasks.begin(),tasks.end())){ //next_permutation zwraca False gdy nie ma następnej permutacji w porządku leksykograficznym.
+        if (int currentLmax = Lmax(tasks); currentLmax < min_max_L) {
+            min_max_L = currentLmax;
+            best_permutation = tasks;
+            
+            //Do podglądania
+            //std::cout<<min_max_L<<std::endl; 
+            //std::cout<<best_permutation<<std::endl;
+        }
     }
-    std::cout << "Metryka = " << Lmax(tasks) << std::endl;
+    return best_permutation;
+}
+int main(){
+    std::string file_path = "/home/duzyk/SPD/SPD/taski.txt";
+    std::vector<Task> tasks = Read_file(file_path);
+    std::cout<<"Zbiór tasków:"<<std::endl<<tasks<<std::endl<<std::endl;
+    std::vector<Task> v = complete_search(tasks); 
+    std::cout << "Najlepsza permutacja to: " << std::endl << v <<"Lmax = "<< Lmax(v) << std::endl;
 }
