@@ -21,3 +21,9 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 # TODO: add more targets, link libraries, and set include directories
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc)
+
+set(TASK_FILE "taski.txt")
+
+file(COPY "${PROJECT_SOURCE_DIR}/${TASK_FILE}"
+     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/"
+)

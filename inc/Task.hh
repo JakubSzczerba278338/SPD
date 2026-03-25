@@ -12,15 +12,15 @@ class Task{
 public:
     Task() {};      
     // liczy w której chwili zadanie się wykona
-    int calc_compl_time(int start_time) { return start_time > _release_date ? start_time + _processing_time : _release_date + _processing_time; }
+    int calc_compl_time(int start_time) const { return start_time > _release_date ? start_time + _processing_time : _release_date + _processing_time; }
     
     // liczy opóźnienie w wykonaniu zadania (może być ujemne, co oznacza, że zadania zostało zrealizowane przed czasem)
-    int calc_lateness(int compl_time) { return compl_time - _due_date; }
-    bool operator<(Task &other) const{ return _release_date < other._release_date; }
+    int calc_lateness(int compl_time) const { return compl_time - _due_date; }
+    bool operator<(Task &other) const { return _release_date < other._release_date; }
     void set_parameters(int release_date, int processing_time, int due_date) {_release_date = release_date; _processing_time = processing_time; _due_date = due_date;}
-    int get_release_date() const{ return _release_date; }
-    int get_processing_time() const{ return _processing_time; }
-    int get_due_date() const{ return _due_date; }
+    int get_release_date() const { return _release_date; }
+    int get_processing_time() const { return _processing_time; }
+    int get_due_date() const { return _due_date; }
 };
 
 inline

@@ -46,10 +46,10 @@ int Lmax(std::vector<Task> &permutation){
     return max_L;
 }
 /*
-Implementacja Przeglądu Zupełnego - przyjmujemy referencję na wektor zadań i zwracamy permutację minimalizującą Lmax 
+    Implementacja Przeglądu Zupełnego - przyjmujemy referencję na wektor zadań i zwracamy permutację minimalizującą Lmax 
 */
-std::vector<Task> complete_search(std::vector<Task> &tasks){
-    std::sort(tasks.begin(),tasks.end());
+std::vector<Task> complete_search(std::vector<Task> &tasks) {
+    std::sort(tasks.begin(), tasks.end());
     std::vector<Task> best_permutation = tasks;
     int min_max_L = Lmax(tasks);
     while(std::next_permutation(tasks.begin(),tasks.end())){ //next_permutation zwraca False gdy nie ma następnej permutacji w porządku leksykograficznym.
@@ -57,9 +57,9 @@ std::vector<Task> complete_search(std::vector<Task> &tasks){
             min_max_L = currentLmax;
             best_permutation = tasks;
             
-            //Do podglądania
-            //std::cout<<min_max_L<<std::endl; 
-            //std::cout<<best_permutation<<std::endl;
+            // Do podglądania
+            // std::cout << min_max_L << std::endl; 
+            // std::cout << best_permutation << std::endl;
         }
     }
     return best_permutation;
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]){
 
     std::string file_path = argv[1];
     std::vector<Task> tasks = Read_file(file_path);
-    std::cout<<"Zbiór tasków:"<<std::endl<<tasks<<std::endl<<std::endl;
+    std::cout << "Zbiór tasków:" << std::endl << tasks << std::endl << std::endl;
     std::vector<Task> v = complete_search(tasks); 
-    std::cout << "Najlepsza permutacja to: " << std::endl << v <<"Lmax = "<< Lmax(v) << std::endl;
+    std::cout << "Najlepsza permutacja to: " << std::endl << v << "Lmax = " << Lmax(v) << std::endl;
 }
