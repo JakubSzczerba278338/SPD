@@ -1,9 +1,11 @@
-#include <vector>
 #include <iostream>
 #include <istream>
 #include <fstream>
 #include <algorithm>
-#include "Task.hh"
+#include "../inc/Task.hh"
+#include <limits>
+#include <sstream>
+
 
 /* 
 czyta plik o podanej nazwie, którego format musi być:
@@ -64,6 +66,47 @@ std::vector<Task> complete_search(std::vector<Task> &tasks) {
     }
     return best_permutation;
 }
+
+/*
+    Funkcja używana w algorytmie konstrukcyjnym do szukania najlepszego miejsca do wstawienia nowego Task'a.
+*/
+
+std::vector<Task> complete_search_insert(std::vector<Task> &tasks,Task &task) {
+    tasks.reserve(tasks.size()+1); //Po zrobieniu insert chyba się pamięć przenosi w inne miejsce i iterator już wskazuje na gówno stąd alokujemy miejsce na jeden dodatkowy element 
+    std::vector<Task> best_permutation = tasks;
+    int min_max_L = std::numeric_limits<int>::max();
+    auto end_1 = tasks.end();
+    std::advance(end_1,1);
+    for(auto it = tasks.begin() ; it != end_1 ; std::advance(it,1)){//
+        tasks.insert(it,task);
+        if (int currentLmax = Lmax(tasks); currentLmax < min_max_L) {
+            min_max_L = currentLmax;
+            best_permutation = tasks;
+            
+            // Do podglądania
+            //std::cout << min_max_L << std::endl; 
+            //std::cout << best_permutation << std::endl;
+        }
+        tasks.erase(it);
+    }
+    return best_permutation;
+}
+
+/*
+    Ten algorytm działa tak: dodajemy kolejny task z tasków posortowanych po rj i wstawiamy go w miejsce, które minimalizuje funkcję Lmax. 
+*/
+
+std::vector<Task> construction_alg(std::vector<Task> &tasks){
+    std::sort(tasks.begin(),tasks.end());
+    std::vector<Task> current_perm;
+    current_perm.reserve(tasks.size());
+    for(auto& task: tasks){
+        current_perm = complete_search_insert(current_perm,task);
+    }
+    return current_perm;
+}
+
+
 int main(int argc, char* argv[]){
     if(argc<2){
         std::cout<<"Użycie: " << argv[0] <<" <ścieżka do pliku z taskami>"<<std::endl;
@@ -74,5 +117,6 @@ int main(int argc, char* argv[]){
     std::vector<Task> tasks = Read_file(file_path);
     std::cout << "Zbiór tasków:" << std::endl << tasks << std::endl << std::endl;
     std::vector<Task> v = complete_search(tasks); 
+    //std::vector<Task> v = construction_alg(tasks); 
     std::cout << "Najlepsza permutacja to: " << std::endl << v << "Lmax = " << Lmax(v) << std::endl;
 }

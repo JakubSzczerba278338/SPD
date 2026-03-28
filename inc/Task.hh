@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <utility>
+#include <vector>
 
 class Task{
     // int _task_id;        // propozycja zmiennej do identyfikacji tasków
@@ -16,7 +17,9 @@ public:
     
     // liczy opóźnienie w wykonaniu zadania (może być ujemne, co oznacza, że zadania zostało zrealizowane przed czasem)
     int calc_lateness(int compl_time) const { return compl_time - _due_date; }
-    bool operator<(Task &other) const { return _release_date < other._release_date; }
+    bool operator<(Task &other) const { return _release_date == other._release_date ? (_processing_time == other._processing_time ? 
+                                                                                            _due_date < other._due_date:_processing_time<other._processing_time) :_release_date < other._release_date;} // generalnie chodzi o to że jak masz równe release date'y to nie przeszukasz wszystkich permutacji i complete search da zły wynik
+    //bool operator<(Task &other) const { return _due_date < other._due_date;}
     void set_parameters(int release_date, int processing_time, int due_date) {_release_date = release_date; _processing_time = processing_time; _due_date = due_date;}
     int get_release_date() const { return _release_date; }
     int get_processing_time() const { return _processing_time; }
@@ -29,6 +32,7 @@ std::ostream &operator<<(std::ostream &ostr,const Task &task){
                 << "Processing Time: " << task.get_processing_time() << ", "
                 << "Due Date: " << task.get_due_date() << "]";
 }
+inline
 std::ostream &operator<<(std::ostream &ostr, const std::vector<Task> &v_Tasks){
     for(const Task &task : v_Tasks){
         ostr<<task<<std::endl;
