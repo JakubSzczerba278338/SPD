@@ -18,7 +18,7 @@ public:
     // liczy opóźnienie w wykonaniu zadania (może być ujemne, co oznacza, że zadania zostało zrealizowane przed czasem)
     int calc_lateness(int compl_time) const { return compl_time - _due_date; }
     bool operator<(Task &other) const { return _release_date == other._release_date ? (_processing_time == other._processing_time ? 
-                                                                                            _due_date < other._due_date:_processing_time<other._processing_time) :_release_date < other._release_date;} // generalnie chodzi o to że jak masz równe release date'y to nie przeszukasz wszystkich permutacji i complete search da zły wynik
+                                                                                            _due_date < other._due_date : _processing_time < other._processing_time) :_release_date < other._release_date;} // generalnie chodzi o to że jak masz równe release date'y to nie przeszukasz wszystkich permutacji i complete search da zły wynik
     //bool operator<(Task &other) const { return _due_date < other._due_date;}
     void set_parameters(int release_date, int processing_time, int due_date) {_release_date = release_date; _processing_time = processing_time; _due_date = due_date;}
     int get_release_date() const { return _release_date; }

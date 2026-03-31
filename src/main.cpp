@@ -70,7 +70,6 @@ std::vector<Task> complete_search(std::vector<Task> &tasks) {
 /*
     Funkcja używana w algorytmie konstrukcyjnym do szukania najlepszego miejsca do wstawienia nowego Task'a.
 */
-
 std::vector<Task> complete_search_insert(std::vector<Task> &tasks,Task &task) {
     tasks.reserve(tasks.size()+1); //Po zrobieniu insert chyba się pamięć przenosi w inne miejsce i iterator już wskazuje na gówno stąd alokujemy miejsce na jeden dodatkowy element 
     std::vector<Task> best_permutation = tasks;
@@ -95,7 +94,6 @@ std::vector<Task> complete_search_insert(std::vector<Task> &tasks,Task &task) {
 /*
     Ten algorytm działa tak: dodajemy kolejny task z tasków posortowanych po rj i wstawiamy go w miejsce, które minimalizuje funkcję Lmax. 
 */
-
 std::vector<Task> construction_alg(std::vector<Task> &tasks){
     std::sort(tasks.begin(),tasks.end());
     std::vector<Task> current_perm;
@@ -105,6 +103,46 @@ std::vector<Task> construction_alg(std::vector<Task> &tasks){
     }
     return current_perm;
 }
+
+std::vector<Task>::iterator find_min_due_date(std::vector<Task> &tasks) {
+    auto min_dd_it = tasks.begin();
+    for(auto it = tasks.begin(); it != tasks.end(); it = std::next(it)) {
+        if(int current_dd = it->get_due_date(); min_dd_it->get_due_date() > current_dd) {
+            min_dd_it = it;
+        }
+    }
+    return min_dd_it;
+}
+
+std::vector<Task> schrage(std::vector<Task> &tasks) {
+    std::vector<Task> N = tasks;
+    std::vector<Task> G;
+    std::vector<Task> result;
+
+    std::sort(N.begin(), N.end());
+    int t = N[0].get_release_date();
+    auto it = N.begin();
+
+    while(!G.empty() || it != N.end()) {
+        while(it->get_release_date() <= t) {
+            G.push_back(*it);
+            it = std::next(it);
+        }
+
+        if(G.empty()) {
+            t = it->get_release_date();
+        } else {
+            auto min_dd_it = find_min_due_date(G);
+            if(min_dd_it != G.end()) {
+                G.erase(min_dd_it);
+                result.push_back(*min_dd_it);
+                t += min_dd_it->get_processing_time();
+            }
+        }
+    }
+    return result;
+}
+
 
 
 int main(int argc, char* argv[]){
@@ -116,7 +154,8 @@ int main(int argc, char* argv[]){
     std::string file_path = argv[1];
     std::vector<Task> tasks = Read_file(file_path);
     std::cout << "Zbiór tasków:" << std::endl << tasks << std::endl << std::endl;
-    std::vector<Task> v = complete_search(tasks); 
-    //std::vector<Task> v = construction_alg(tasks); 
+    // std::vector<Task> v = complete_search(tasks); 
+    // std::vector<Task> v = construction_alg(tasks);
+    auto v = schrage(tasks);
     std::cout << "Najlepsza permutacja to: " << std::endl << v << "Lmax = " << Lmax(v) << std::endl;
 }
