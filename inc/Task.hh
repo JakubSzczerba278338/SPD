@@ -43,7 +43,7 @@ std::ostream &operator<<(std::ostream &ostr, const std::vector<Task> &v_Tasks){
 inline
 std::istream &operator>>(std::istream &istr,Task &task){
     int release_date, processing_time, due_date;
-    istr >> release_date >> processing_time >> due_date;
+    istr >> processing_time >> release_date>> due_date;
     task.set_parameters(release_date, processing_time, due_date); 
     return istr;
 }

@@ -155,7 +155,7 @@ int main(int argc, char* argv[]){
     std::vector<Task> tasks = Read_file(file_path);
     std::cout << "Zbiór tasków:" << std::endl << tasks << std::endl << std::endl;
     // std::vector<Task> v = complete_search(tasks); 
-    // std::vector<Task> v = construction_alg(tasks);
-    auto v = schrage(tasks);
+    std::vector<Task> v = construction_alg(tasks);
+    //auto v = schrage(tasks);
     std::cout << "Najlepsza permutacja to: " << std::endl << v << "Lmax = " << Lmax(v) << std::endl;
 }
