@@ -124,7 +124,7 @@ std::vector<Task> schrage(std::vector<Task> &tasks) {
     auto it = N.begin();
 
     while(!G.empty() || it != N.end()) {
-        while(it->get_release_date() <= t) {
+        while(it->get_release_date() <= t && it != N.end()) {
             G.push_back(*it);
             it = std::next(it);
         }
