@@ -167,7 +167,7 @@ std::vector<std::pair<Task,int>> schrage_preemptive(std::vector<Task> &tasks) {
                     time_processed = temp - t;
                 }
                 else{
-                    time_processed = min_dd_it->get_processing_time();
+                    time_processed = min_dd_it->get_processing_time() - min_dd_it->get_time_processed();
                 }
                 result.push_back(std::pair<Task,int>(*min_dd_it,time_processed));
                 min_dd_it->change_time_processed(time_processed);
