@@ -5,7 +5,7 @@
 #include "../inc/Task.hh"
 #include <limits>
 #include <sstream>
-
+#include <utility>
 
 /* 
 czyta plik o podanej nazwie, którego format musi być:
@@ -104,7 +104,7 @@ std::vector<Task> construction_alg(std::vector<Task> &tasks){
     return current_perm;
 }
 
-std::vector<Task>::iterator find_min_due_date(std::vector<Task> &tasks) {
+std::vector<Task>::iterator find_min_due_date(std::vector<Task> &tasks) { // co jeśli są równe?
     auto min_dd_it = tasks.begin();
     for(auto it = tasks.begin(); it != tasks.end(); it = std::next(it)) {
         if(int current_dd = it->get_due_date(); min_dd_it->get_due_date() > current_dd) {
@@ -143,6 +143,43 @@ std::vector<Task> schrage(std::vector<Task> &tasks) {
     return result;
 }
 
+std::vector<std::pair<Task,int>> schrage_preemptive(std::vector<Task> &tasks) {
+    std::vector<Task> N = tasks;
+    std::vector<Task> G;
+    std::vector<std::pair<Task,int>> result;
+    int time_processed;
+
+    std::sort(N.begin(), N.end());
+    int t = N[0].get_release_date();
+    auto it = N.begin();
+
+    while(!G.empty() || it != N.end()) {
+        while(it->get_release_date() <= t && it != N.end()) {
+            G.push_back(*it);
+            it = std::next(it);
+        }
+        if(G.empty()) {
+            t = it->get_release_date();
+        } else {
+            auto min_dd_it = find_min_due_date(G);
+            if(min_dd_it != G.end()) {
+                if(int temp = it->get_release_date(); temp < t + min_dd_it->get_processing_time() - min_dd_it->get_time_processed() && it != N.end()){
+                    time_processed = temp - t;
+                }
+                else{
+                    time_processed = min_dd_it->get_processing_time();
+                }
+                result.push_back(std::pair<Task,int>(*min_dd_it,time_processed));
+                min_dd_it->change_time_processed(time_processed);
+                if(min_dd_it->is_finished()){
+                    G.erase(min_dd_it);
+                }
+                t += time_processed;
+            }
+        }
+    }
+    return result;
+}
 
 
 int main(int argc, char* argv[]){
@@ -155,7 +192,8 @@ int main(int argc, char* argv[]){
     std::vector<Task> tasks = Read_file(file_path);
     std::cout << "Zbiór tasków:" << std::endl << tasks << std::endl << std::endl;
     // std::vector<Task> v = complete_search(tasks); 
-    std::vector<Task> v = construction_alg(tasks);
+    //std::vector<Task> v = construction_alg(tasks);
     //auto v = schrage(tasks);
-    std::cout << "Najlepsza permutacja to: " << std::endl << v << "Lmax = " << Lmax(v) << std::endl;
+    auto v = schrage_preemptive(tasks);
+    std::cout << "Najlepsza permutacja to: " << std::endl << v << "Lmax = " <<std::endl; //Lmax(v) << std::endl;
 }
