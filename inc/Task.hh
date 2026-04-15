@@ -15,7 +15,7 @@ public:
     Task() {};      
     // liczy w której chwili zadanie się wykona
     int calc_compl_time(int start_time) const { return start_time > _release_date ? start_time + _processing_time : _release_date + _processing_time; }
-    
+    int calc_compl_time_preemptive(int start_time,int processed_time) const{/*std::cout<<_time_processed<<std::endl;*/return start_time > _release_date ? start_time + processed_time : _release_date + processed_time;} //guuuuuuuuuuuuuuupie rozwiazanie
     // liczy opóźnienie w wykonaniu zadania (może być ujemne, co oznacza, że zadania zostało zrealizowane przed czasem)
     int calc_lateness(int compl_time) const { return compl_time - _due_date; }
     bool operator<(Task &other) const { return _release_date == other._release_date ? (_processing_time == other._processing_time ? 

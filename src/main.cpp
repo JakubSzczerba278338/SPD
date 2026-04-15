@@ -5,7 +5,7 @@
 #include "../inc/Task.hh"
 #include <limits>
 #include <sstream>
-#include <utility>
+
 
 /* 
 czyta plik o podanej nazwie, którego format musi być:
@@ -43,6 +43,18 @@ int Lmax(std::vector<Task> &permutation){
     for(auto& task: permutation){
         time = task.calc_compl_time(time);
         L = task.calc_lateness(time);
+        if(max_L < L){max_L = L;}
+    }
+    return max_L;
+}
+
+int Lmax(std::vector<std::pair<Task,int>> &permutation){
+    int max_L = 0;
+    int L = 0;
+    int time = 0;
+    for(auto& task: permutation){
+        time = task.first.calc_compl_time_preemptive(time,task.second);
+        L = task.first.calc_lateness(time);
         if(max_L < L){max_L = L;}
     }
     return max_L;
@@ -128,17 +140,17 @@ std::vector<Task> schrage(std::vector<Task> &tasks) {
             G.push_back(*it);
             it = std::next(it);
         }
-
+        
         if(G.empty()) {
             t = it->get_release_date();
         } else {
             auto min_dd_it = find_min_due_date(G);
-            if(min_dd_it != G.end()) {
-                G.erase(min_dd_it);
-                result.push_back(*min_dd_it);
-                t += min_dd_it->get_processing_time();
-            }
+            std::cout<<*min_dd_it<<std::endl;
+            result.push_back(*min_dd_it);
+            G.erase(min_dd_it);
+            t += min_dd_it->get_processing_time();
         }
+        
     }
     return result;
 }
@@ -162,20 +174,19 @@ std::vector<std::pair<Task,int>> schrage_preemptive(std::vector<Task> &tasks) {
             t = it->get_release_date();
         } else {
             auto min_dd_it = find_min_due_date(G);
-            if(min_dd_it != G.end()) {
-                if(int temp = it->get_release_date(); temp < t + min_dd_it->get_processing_time() - min_dd_it->get_time_processed() && it != N.end()){
-                    time_processed = temp - t;
-                }
-                else{
-                    time_processed = min_dd_it->get_processing_time() - min_dd_it->get_time_processed();
-                }
-                result.push_back(std::pair<Task,int>(*min_dd_it,time_processed));
-                min_dd_it->change_time_processed(time_processed);
-                if(min_dd_it->is_finished()){
-                    G.erase(min_dd_it);
-                }
-                t += time_processed;
+            if(int temp = it->get_release_date(); temp < t + min_dd_it->get_processing_time() - min_dd_it->get_time_processed() && it != N.end()){
+                time_processed = temp - t;
             }
+            else{
+                time_processed = min_dd_it->get_processing_time() - min_dd_it->get_time_processed();
+            }
+            min_dd_it->change_time_processed(time_processed);
+            result.push_back(std::pair<Task,int>(*min_dd_it,time_processed));
+            if(min_dd_it->is_finished()){
+                G.erase(min_dd_it);
+            }
+            t += time_processed;
+            
         }
     }
     return result;
@@ -193,7 +204,7 @@ int main(int argc, char* argv[]){
     std::cout << "Zbiór tasków:" << std::endl << tasks << std::endl << std::endl;
     // std::vector<Task> v = complete_search(tasks); 
     //std::vector<Task> v = construction_alg(tasks);
-    //auto v = schrage(tasks);
-    auto v = schrage_preemptive(tasks);
-    std::cout << "Najlepsza permutacja to: " << std::endl << v << "Lmax = " <<std::endl; //Lmax(v) << std::endl;
+    auto v = schrage(tasks);
+    //auto v = schrage_preemptive(tasks);
+    std::cout << "Najlepsza permutacja to: " << std::endl << v << "Lmax = " << Lmax(v) << std::endl;
 }
