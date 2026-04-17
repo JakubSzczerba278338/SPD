@@ -48,13 +48,16 @@ int Lmax(std::vector<Task> &permutation){
     return max_L;
 }
 
+/*
+    Przeciążenie Lmax dla Schrage wywłaszczającego
+*/
 int Lmax(std::vector<std::pair<Task,int>> &permutation){
     int max_L = 0;
     int L = 0;
     int time = 0;
-    for(auto& task: permutation){
-        time = task.first.calc_compl_time_preemptive(time,task.second);
-        L = task.first.calc_lateness(time);
+    for(auto& pair: permutation){
+        time = pair.first.calc_compl_time(time,pair.second);
+        L = pair.first.calc_lateness(time);
         if(max_L < L){max_L = L;}
     }
     return max_L;
@@ -126,6 +129,9 @@ std::vector<Task>::iterator find_min_due_date(std::vector<Task> &tasks) { // co 
     return min_dd_it;
 }
 
+/*
+    Implementacja algorytmu Schrage.
+*/
 std::vector<Task> schrage(std::vector<Task> &tasks) {
     std::vector<Task> N = tasks;
     std::vector<Task> G;
@@ -154,12 +160,15 @@ std::vector<Task> schrage(std::vector<Task> &tasks) {
     }
     return result;
 }
-
+/*
+    Schrage z wywłaszczaniem, w skrócie działa tak, że wykonujemy zadanie do momentu gdy następne w posortowanym po release date zbiorze tasków 
+    będzie dostępne, wtedy przerywamy wykonywanie, dodajemy nowego taska i znowu wybieramy o minimalnym due date ze zbioru gotowych
+*/
 std::vector<std::pair<Task,int>> schrage_preemptive(std::vector<Task> &tasks) {
     std::vector<Task> N = tasks;
     std::vector<Task> G;
     std::vector<std::pair<Task,int>> result;
-    int time_processed;
+    int time_processed; //zmienna do reprezentacji rozwiążania
 
     std::sort(N.begin(), N.end());
     int t = N[0].get_release_date();
@@ -174,7 +183,9 @@ std::vector<std::pair<Task,int>> schrage_preemptive(std::vector<Task> &tasks) {
             t = it->get_release_date();
         } else {
             auto min_dd_it = find_min_due_date(G);
-            if(int temp = it->get_release_date(); temp < t + min_dd_it->get_processing_time() - min_dd_it->get_time_processed() && it != N.end()){
+            
+            //jeśli jest dostępne nowe zadanie zanim skończy się wykonywać bieżące to wykonuje się ono do momentu dostępności następnego
+            if(int temp = it->get_release_date(); temp < t + min_dd_it->get_processing_time() - min_dd_it->get_time_processed() && it != N.end()){ 
                 time_processed = temp - t;
             }
             else{
@@ -182,6 +193,7 @@ std::vector<std::pair<Task,int>> schrage_preemptive(std::vector<Task> &tasks) {
             }
             min_dd_it->change_time_processed(time_processed);
             result.push_back(std::pair<Task,int>(*min_dd_it,time_processed));
+            //jeśli zadanie wykonało się do końca usuń ze zbioru zadań gotowych
             if(min_dd_it->is_finished()){
                 G.erase(min_dd_it);
             }
@@ -204,7 +216,7 @@ int main(int argc, char* argv[]){
     std::cout << "Zbiór tasków:" << std::endl << tasks << std::endl << std::endl;
     // std::vector<Task> v = complete_search(tasks); 
     //std::vector<Task> v = construction_alg(tasks);
-    auto v = schrage(tasks);
-    //auto v = schrage_preemptive(tasks);
+    //auto v = schrage(tasks);
+    auto v = schrage_preemptive(tasks);
     std::cout << "Najlepsza permutacja to: " << std::endl << v << "Lmax = " << Lmax(v) << std::endl;
 }
