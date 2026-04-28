@@ -9,7 +9,7 @@ class Task{
     int _release_date;      // czas gotowości do realizacji zadania
     int _processing_time;   // czas wykonywania 
     int _due_date;          // oczekiwany czas realizacji zadania
-    int _time_processed;
+    mutable int _time_processed;
 
 public:
     Task() {};      
@@ -23,8 +23,8 @@ public:
                                                                                             _due_date < other._due_date : _processing_time < other._processing_time) :_release_date < other._release_date;} // generalnie chodzi o to że jak masz równe release date'y to nie przeszukasz wszystkich permutacji i complete search da zły wynik
     //bool operator<(Task &other) const { return _due_date < other._due_date;}
     void set_parameters(int release_date, int processing_time, int due_date,int time_processed = 0) {_release_date = release_date; _processing_time = processing_time; _due_date = due_date; _time_processed = time_processed;}
-    void change_time_processed(int processed_time) {if(int temp = _time_processed + processed_time ; temp <= _processing_time){_time_processed = temp;} else {_time_processed = _processing_time;};} // może inne nazwy lollll
-    bool is_finished() {return _time_processed == _processing_time ? true : false;}
+    void change_time_processed(int processed_time) const {if(int temp = _time_processed + processed_time ; temp <= _processing_time){_time_processed = temp;} else {_time_processed = _processing_time;};} // może inne nazwy lollll
+    bool is_finished() const {return _time_processed == _processing_time ? true : false;}
     int get_release_date() const { return _release_date; }
     int get_processing_time() const { return _processing_time; }
     int get_due_date() const { return _due_date; }

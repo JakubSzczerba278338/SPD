@@ -5,6 +5,8 @@
 #include "../inc/Task.hh"
 #include <limits>
 #include <sstream>
+#include <chrono>
+#include <queue>
 
 
 /* 
@@ -27,7 +29,8 @@ std::vector<Task> Read_file(std::string file){
     Task task;
     std::vector<Task> v_Tasks;
     v_Tasks.reserve(num_tasks);
-    while (File >> task){
+    for(int i = 0; i < num_tasks; i++) {
+        File >> task;
         v_Tasks.push_back(std::move(task));
     }
     return v_Tasks;
@@ -132,29 +135,33 @@ std::vector<Task>::iterator find_min_due_date(std::vector<Task> &tasks) { // co 
 /*
     Implementacja algorytmu Schrage.
 */
-std::vector<Task> schrage(std::vector<Task> &tasks) {
+std::vector<Task> schrage(std::vector<Task> &tasks) { // prio queue zamiast vector
     std::vector<Task> N = tasks;
-    std::vector<Task> G;
+    auto cmp = [](const Task &t1, const Task &t2) { 
+        return t1.get_due_date() > t2.get_due_date(); // Uwaga: '>' dla kolejki min-priority
+    };
+
+    std::priority_queue<Task, std::vector<Task>, decltype(cmp)> G(cmp);
     std::vector<Task> result;
 
-    std::sort(N.begin(), N.end());
+    std::sort(N.begin(), N.end()); // sortujemy po rj
     int t = N[0].get_release_date();
     auto it = N.begin();
 
     while(!G.empty() || it != N.end()) {
-        while(it->get_release_date() <= t && it != N.end()) {
-            G.push_back(*it);
+        while(it != N.end() && it->get_release_date() <= t) {
+            G.push(*it);
             it = std::next(it);
         }
         
         if(G.empty()) {
             t = it->get_release_date();
         } else {
-            auto min_dd_it = find_min_due_date(G);
-            std::cout<<*min_dd_it<<std::endl;
-            result.push_back(*min_dd_it);
-            G.erase(min_dd_it);
-            t += min_dd_it->get_processing_time();
+            const auto& min_dd = G.top();
+            //std::cout<<*min_dd_it<<std::endl;
+            result.push_back(min_dd);
+            G.pop();
+            t += min_dd.get_processing_time();
         }
         
     }
@@ -166,7 +173,10 @@ std::vector<Task> schrage(std::vector<Task> &tasks) {
 */
 std::vector<std::pair<Task,int>> schrage_preemptive(std::vector<Task> &tasks) {
     std::vector<Task> N = tasks;
-    std::vector<Task> G;
+    auto cmp = [](const Task &t1, const Task &t2) { 
+        return t1.get_due_date() > t2.get_due_date(); // Uwaga: '>' dla kolejki min-priority
+    };
+    std::priority_queue<Task, std::vector<Task>, decltype(cmp)> G(cmp);
     std::vector<std::pair<Task,int>> result;
     int time_processed; //zmienna do reprezentacji rozwiążania
 
@@ -176,26 +186,26 @@ std::vector<std::pair<Task,int>> schrage_preemptive(std::vector<Task> &tasks) {
 
     while(!G.empty() || it != N.end()) {
         while(it->get_release_date() <= t && it != N.end()) {
-            G.push_back(*it);
+            G.push(*it);
             it = std::next(it);
         }
         if(G.empty()) {
             t = it->get_release_date();
         } else {
-            auto min_dd_it = find_min_due_date(G);
+            auto& min_dd = G.top();
             
             //jeśli jest dostępne nowe zadanie zanim skończy się wykonywać bieżące to wykonuje się ono do momentu dostępności następnego
-            if(int temp = it->get_release_date(); temp < t + min_dd_it->get_processing_time() - min_dd_it->get_time_processed() && it != N.end()){ 
+            if(int temp = it->get_release_date(); temp < t + min_dd.get_processing_time() - min_dd.get_time_processed() && it != N.end()){ 
                 time_processed = temp - t;
             }
             else{
-                time_processed = min_dd_it->get_processing_time() - min_dd_it->get_time_processed();
+                time_processed = min_dd.get_processing_time() - min_dd.get_time_processed();
             }
-            min_dd_it->change_time_processed(time_processed);
-            result.push_back(std::pair<Task,int>(*min_dd_it,time_processed));
+            min_dd.change_time_processed(time_processed);
+            result.push_back(std::pair<Task,int>(min_dd, time_processed));
             //jeśli zadanie wykonało się do końca usuń ze zbioru zadań gotowych
-            if(min_dd_it->is_finished()){
-                G.erase(min_dd_it);
+            if(min_dd.is_finished()){
+                G.pop();
             }
             t += time_processed;
             
@@ -204,6 +214,21 @@ std::vector<std::pair<Task,int>> schrage_preemptive(std::vector<Task> &tasks) {
     return result;
 }
 
+template <typename Func>
+void benchmark(std::string file_path, Func algorithm, int iter) {
+    std::vector<Task> tasks = Read_file(file_path);
+
+    std::chrono::duration<double> elapsed = std::chrono::duration<double>::zero();
+    for(int i = 0; i < iter; ++i) {
+        tasks = Read_file(file_path);
+        auto start = std::chrono::high_resolution_clock::now();
+        const auto& v = algorithm(tasks);
+        auto end = std::chrono::high_resolution_clock::now();
+        elapsed += end - start;
+    }
+
+    std::cout << elapsed/iter << std::endl;
+};
 
 int main(int argc, char* argv[]){
     if(argc<2){
@@ -212,11 +237,36 @@ int main(int argc, char* argv[]){
     }
 
     std::string file_path = argv[1];
-    std::vector<Task> tasks = Read_file(file_path);
-    std::cout << "Zbiór tasków:" << std::endl << tasks << std::endl << std::endl;
-    // std::vector<Task> v = complete_search(tasks); 
-    //std::vector<Task> v = construction_alg(tasks);
-    //auto v = schrage(tasks);
-    auto v = schrage_preemptive(tasks);
-    std::cout << "Najlepsza permutacja to: " << std::endl << v << "Lmax = " << Lmax(v) << std::endl;
+    for (int i = 0; i < argc; ++i) {
+        std::string arg = argv[i];
+        benchmark(arg, construction_alg, 100000);
+        //benchmark(arg, schrage, 100000);
+        //benchmark(arg, schrage_preemptive, 100000);
+    }
+
+    // std::cout << "Zbiór tasków:" << std::endl << tasks << std::endl << std::endl;
+    // std::vector<Task> v1 = complete_search(tasks);
+
+    // auto start = std::chrono::high_resolution_clock::now();
+    // std::vector<Task> v2 = construction_alg(tasks);
+    // auto end = std::chrono::high_resolution_clock::now();
+    // std::chrono::duration<double> elapsed = end - start;
+    // std::cout << "Czas wykonania constr: " << elapsed.count() << " sekund" << std::endl;
+
+    // start = std::chrono::high_resolution_clock::now();
+    // auto v3 = schrage(tasks);
+    // end = std::chrono::high_resolution_clock::now();
+    // elapsed = end - start;
+    // std::cout << "Czas wykonania schrage: " << elapsed.count() << " sekund" << std::endl;
+
+    // start = std::chrono::high_resolution_clock::now();
+    // auto v4 = schrage_preemptive(tasks);
+    // end = std::chrono::high_resolution_clock::now();
+    // elapsed = end - start;
+    // std::cout << "Czas wykonania schrage preempt: " << elapsed.count() << " sekund" << std::endl;
+
+    // // std::cout << "Lmax = " << Lmax(v1) << std::endl;
+    // std::cout << "Constr. Lmax = " << Lmax(v2) << std::endl;
+    // std::cout << "Schrage Lmax = " << Lmax(v3) << std::endl;
+    // std::cout << "Schrage preempt. Lmax = " << Lmax(v4) << std::endl;
 }
