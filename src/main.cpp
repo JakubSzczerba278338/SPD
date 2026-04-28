@@ -214,21 +214,24 @@ std::vector<std::pair<Task,int>> schrage_preemptive(std::vector<Task> &tasks) {
     return result;
 }
 
-template <typename Func>
-void benchmark(std::string file_path, Func algorithm, int iter) {
-    std::vector<Task> tasks = Read_file(file_path);
+template<typename Func>
+void benchmark(const std::string& file_path, Func algorithm, int iter) {
 
-    std::chrono::duration<double> elapsed = std::chrono::duration<double>::zero();
-    for(int i = 0; i < iter; ++i) {
-        tasks = Read_file(file_path);
-        auto start = std::chrono::high_resolution_clock::now();
-        const auto& v = algorithm(tasks);
-        auto end = std::chrono::high_resolution_clock::now();
-        elapsed += end - start;
-    }
+std::chrono::duration<double> elapsed{};
+auto tasks_start = Read_file(file_path);
+auto v = algorithm(tasks_start);
+for (int i = 0; i < iter; ++i) {
+    auto tasks = Read_file(file_path);
+    auto start = std::chrono::high_resolution_clock::now();
+    algorithm(tasks);
+    auto end = std::chrono::high_resolution_clock::now();
+    elapsed += end - start;
+}
 
-    std::cout << elapsed/iter << std::endl;
-};
+std::cout << "Time: "<<(elapsed / iter).count() << "s"<< std::endl;
+std::cout << "Lmax: " << Lmax(v) << std::endl;
+//std::cout << "Best perm: " << std::endl << v << std::endl;
+}
 
 int main(int argc, char* argv[]){
     if(argc<2){
@@ -236,37 +239,17 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
-    std::string file_path = argv[1];
-    for (int i = 0; i < argc; ++i) {
+    int iter = 10;
+    for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
-        benchmark(arg, construction_alg, 100000);
-        //benchmark(arg, schrage, 100000);
-        //benchmark(arg, schrage_preemptive, 100000);
+        std::cout << "BENCHMARK - " << arg << std::endl;
+        // std::cout << "============== complete search ==============" << std::endl;
+        // benchmark(arg, complete_search, iter);
+        std::cout << "============== construcion ==============" << std::endl;
+        benchmark(arg, construction_alg, iter);
+        std::cout << "============== schrage ==============" << std::endl;
+        benchmark(arg, schrage, iter);
+        std::cout << "============== schrage preempt ==============" << std::endl;
+        benchmark(arg, schrage_preemptive, iter);
     }
-
-    // std::cout << "Zbiór tasków:" << std::endl << tasks << std::endl << std::endl;
-    // std::vector<Task> v1 = complete_search(tasks);
-
-    // auto start = std::chrono::high_resolution_clock::now();
-    // std::vector<Task> v2 = construction_alg(tasks);
-    // auto end = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> elapsed = end - start;
-    // std::cout << "Czas wykonania constr: " << elapsed.count() << " sekund" << std::endl;
-
-    // start = std::chrono::high_resolution_clock::now();
-    // auto v3 = schrage(tasks);
-    // end = std::chrono::high_resolution_clock::now();
-    // elapsed = end - start;
-    // std::cout << "Czas wykonania schrage: " << elapsed.count() << " sekund" << std::endl;
-
-    // start = std::chrono::high_resolution_clock::now();
-    // auto v4 = schrage_preemptive(tasks);
-    // end = std::chrono::high_resolution_clock::now();
-    // elapsed = end - start;
-    // std::cout << "Czas wykonania schrage preempt: " << elapsed.count() << " sekund" << std::endl;
-
-    // // std::cout << "Lmax = " << Lmax(v1) << std::endl;
-    // std::cout << "Constr. Lmax = " << Lmax(v2) << std::endl;
-    // std::cout << "Schrage Lmax = " << Lmax(v3) << std::endl;
-    // std::cout << "Schrage preempt. Lmax = " << Lmax(v4) << std::endl;
 }
