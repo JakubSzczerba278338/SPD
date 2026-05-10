@@ -13,10 +13,10 @@
 czyta plik o podanej nazwie, którego format musi być:
 
 <number_of_tasks>
-<task_1_release_date> <task_1_processing_time> <task_1_due_date>
-<task_2_release_date> <task_2_processing_time> <task_2_due_date>
+<task_1_processing_time> <task_1_release_date> <task_1_due_date>
+<task_2_processing_time> <task_2_release_date>  <task_2_due_date>
 ...
-<task_N_release_date> <task_N_processing_time> <task_N_due_date> 
+<task_N_processing_time> <task_N_release_date> <task_N_due_date> 
 EOF
 
 A następnie wczytuje dane z pliku do obiektów klasy Task.
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]){
         std::cout << "BENCHMARK - " << arg << std::endl;
         // std::cout << "============== complete search ==============" << std::endl;
         // benchmark(arg, complete_search, iter);
-        std::cout << "============== construcion ==============" << std::endl;
+        std::cout << "============== construction ==============" << std::endl;
         benchmark(arg, construction_alg, iter);
         std::cout << "============== schrage ==============" << std::endl;
         benchmark(arg, schrage, iter);
