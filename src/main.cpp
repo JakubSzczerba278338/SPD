@@ -138,14 +138,14 @@ std::vector<Task>::iterator find_min_due_date(std::vector<Task> &tasks) { // co 
 std::vector<Task> schrage(std::vector<Task> &tasks) { // prio queue zamiast vector
     std::vector<Task> N = tasks;
     auto cmp = [](const Task &t1, const Task &t2) { 
-        return t1.get_due_date() > t2.get_due_date(); // Uwaga: '>' dla kolejki min-priority
+        return t1.get_due_date() == t2.get_due_date() ? t1.get_processing_time() < t2.get_processing_time() : t1.get_due_date() > t2.get_due_date(); // Uwaga: '>' dla kolejki min-priority
     };
 
     std::priority_queue<Task, std::vector<Task>, decltype(cmp)> G(cmp);
     std::vector<Task> result;
 
     std::sort(N.begin(), N.end()); // sortujemy po rj
-    int t = N[0].get_release_date();
+    int t = 0;
     auto it = N.begin();
 
     while(!G.empty() || it != N.end()) {
@@ -155,13 +155,14 @@ std::vector<Task> schrage(std::vector<Task> &tasks) { // prio queue zamiast vect
         }
         
         if(G.empty()) {
-            t = it->get_release_date();
-        } else {
+            if(t < it->get_release_date()) t = it->get_release_date();
+        } 
+        else {
             const auto& min_dd = G.top();
             //std::cout<<*min_dd_it<<std::endl;
             result.push_back(min_dd);
-            G.pop();
             t += min_dd.get_processing_time();
+            G.pop();
         }
         
     }
@@ -174,14 +175,14 @@ std::vector<Task> schrage(std::vector<Task> &tasks) { // prio queue zamiast vect
 std::vector<std::pair<Task,int>> schrage_preemptive(std::vector<Task> &tasks) {
     std::vector<Task> N = tasks;
     auto cmp = [](const Task &t1, const Task &t2) { 
-        return t1.get_due_date() > t2.get_due_date(); // Uwaga: '>' dla kolejki min-priority
+        return t1.get_due_date() == t2.get_due_date() ? t1.get_processing_time() < t2.get_processing_time() : t1.get_due_date() > t2.get_due_date(); // Uwaga: '>' dla kolejki min-priority
     };
     std::priority_queue<Task, std::vector<Task>, decltype(cmp)> G(cmp);
-    std::vector<std::pair<Task,int>> result;
-    int time_processed; //zmienna do reprezentacji rozwiążania
+    std::vector<std::pair<Task,int>> result; //zmienna do reprezentacji rozwiążania
+    int time_processed; 
 
     std::sort(N.begin(), N.end());
-    int t = N[0].get_release_date();
+    int t = 0;
     auto it = N.begin();
 
     while(!G.empty() || it != N.end()) {
@@ -190,7 +191,7 @@ std::vector<std::pair<Task,int>> schrage_preemptive(std::vector<Task> &tasks) {
             it = std::next(it);
         }
         if(G.empty()) {
-            t = it->get_release_date();
+            if(t <= it->get_release_date()) t = it->get_release_date();
         } else {
             auto& min_dd = G.top();
             
@@ -213,6 +214,7 @@ std::vector<std::pair<Task,int>> schrage_preemptive(std::vector<Task> &tasks) {
     }
     return result;
 }
+
 
 template<typename Func>
 void benchmark(const std::string& file_path, Func algorithm, int iter) {

@@ -19,8 +19,8 @@ public:
     int calc_compl_time(int start_time,int processed_time) const{/*std::cout<<_time_processed<<std::endl;*/return start_time > _release_date ? start_time + processed_time : _release_date + processed_time;} 
     // liczy opóźnienie w wykonaniu zadania (może być ujemne, co oznacza, że zadania zostało zrealizowane przed czasem)
     int calc_lateness(int compl_time) const { return compl_time - _due_date; }
-    bool operator<(Task &other) const { return _release_date == other._release_date ? (_processing_time == other._processing_time ? 
-                                                                                            _due_date < other._due_date : _processing_time < other._processing_time) :_release_date < other._release_date;} // generalnie chodzi o to że jak masz równe release date'y to nie przeszukasz wszystkich permutacji i complete search da zły wynik
+    bool operator<(Task &other) const { return _release_date == other._release_date ? (_due_date == other._due_date ? 
+                                                                                            _processing_time < other._processing_time : _due_date < other._due_date) :_release_date < other._release_date;} // generalnie chodzi o to że jak masz równe release date'y to nie przeszukasz wszystkich permutacji i complete search da zły wynik
     //bool operator<(Task &other) const { return _due_date < other._due_date;}
     void set_parameters(int release_date, int processing_time, int due_date,int time_processed = 0) {_release_date = release_date; _processing_time = processing_time; _due_date = due_date; _time_processed = time_processed;}
     void change_time_processed(int processed_time) const {if(int temp = _time_processed + processed_time ; temp <= _processing_time){_time_processed = temp;} else {_time_processed = _processing_time;};} // może inne nazwy lollll
