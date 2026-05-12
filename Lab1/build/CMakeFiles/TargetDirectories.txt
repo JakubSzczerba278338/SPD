@@ -1,0 +1,3 @@
+/home/c/Dokumenty/278338/SPD/build/CMakeFiles/SPD.dir
+/home/c/Dokumenty/278338/SPD/build/CMakeFiles/edit_cache.dir
+/home/c/Dokumenty/278338/SPD/build/CMakeFiles/rebuild_cache.dir
