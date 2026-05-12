@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <iostream>
 #include <istream>
 #include <fstream>
@@ -216,42 +217,117 @@ std::vector<std::pair<Task,int>> schrage_preemptive(std::vector<Task> &tasks) {
 }
 
 
+// template<typename Func>
+// void benchmark(const std::string& file_path, Func algorithm, int iter) {
+
+// std::chrono::duration<double> elapsed{};
+// auto tasks_start = Read_file(file_path);
+// auto v = algorithm(tasks_start);
+// for (int i = 0; i < iter; ++i) {
+//     auto tasks = Read_file(file_path);
+//     auto start = std::chrono::high_resolution_clock::now();
+//     algorithm(tasks);
+//     auto end = std::chrono::high_resolution_clock::now();
+//     elapsed += end - start;
+// }
+
+// std::cout << "Time: "<<(elapsed / iter).count() << "s"<< std::endl;
+// std::cout << "Lmax: " << Lmax(v) << std::endl;
+// //std::cout << "Best perm: " << std::endl << v << std::endl;
+// }
+
+
 template<typename Func>
-void benchmark(const std::string& file_path, Func algorithm, int iter) {
+void benchmark(const std::string& file_path, Func algorithm, int iter, std::ostream& out) {
+    std::chrono::duration<double> elapsed{};
+    auto tasks_start = Read_file(file_path);
+    auto v = algorithm(tasks_start);
 
-std::chrono::duration<double> elapsed{};
-auto tasks_start = Read_file(file_path);
-auto v = algorithm(tasks_start);
-for (int i = 0; i < iter; ++i) {
-    auto tasks = Read_file(file_path);
-    auto start = std::chrono::high_resolution_clock::now();
-    algorithm(tasks);
-    auto end = std::chrono::high_resolution_clock::now();
-    elapsed += end - start;
+    for (int i = 0; i < iter; ++i) {
+        auto tasks = Read_file(file_path);
+        auto start = std::chrono::high_resolution_clock::now();
+        algorithm(tasks);
+        auto end = std::chrono::high_resolution_clock::now();
+        elapsed += end - start;
+    }
+
+    // Format: <Lmax> <czas_wykonywania>
+    out << Lmax(v) << " " << (elapsed / iter).count() << "s" << std::endl;
 }
 
-std::cout << "Time: "<<(elapsed / iter).count() << "s"<< std::endl;
-std::cout << "Lmax: " << Lmax(v) << std::endl;
-//std::cout << "Best perm: " << std::endl << v << std::endl;
-}
 
 int main(int argc, char* argv[]){
-    if(argc<2){
-        std::cout<<"Użycie: " << argv[0] <<" <ścieżka do pliku z taskami>"<<std::endl;
+    if (argc < 2) {
+        std::cout << "Użycie: " << argv[0] << " <katalog_z_instancjami>" << std::endl;
         return 1;
     }
 
+    std::string dir_path = argv[1];
     int iter = 10;
-    for (int i = 1; i < argc; ++i) {
-        std::string arg = argv[i];
-        std::cout << "BENCHMARK - " << arg << std::endl;
-        // std::cout << "============== complete search ==============" << std::endl;
-        // benchmark(arg, complete_search, iter);
-        std::cout << "============== construction ==============" << std::endl;
-        benchmark(arg, construction_alg, iter);
-        std::cout << "============== schrage ==============" << std::endl;
-        benchmark(arg, schrage, iter);
-        std::cout << "============== schrage preempt ==============" << std::endl;
-        benchmark(arg, schrage_preemptive, iter);
+    std::ofstream results_file("wyniki_benchmarku.txt");
+
+    if (!results_file.is_open()) {
+        std::cerr << "Nie można otworzyć pliku do zapisu!" << std::endl;
+        return 1;
     }
+
+    // Listowanie plików w katalogu (tylko .txt)
+    std::vector<std::string> files;
+    for (const auto &entry : std::filesystem::directory_iterator(dir_path)) {
+        if(entry.is_regular_file()) {
+            auto p = entry.path();
+            if(p.extension() == ".txt") files.push_back(p.string());
+        }
+    }
+
+    if(files.empty()){
+        std::cout << "Brak plików .txt w katalogu: " << dir_path << std::endl;
+        return 1;
+    }
+
+    std::sort(files.begin(), files.end());
+
+    for(const auto &file : files){
+        // Wyciągamy samą nazwę pliku z pełnej ścieżki
+        std::string filename = std::filesystem::path(file).filename().string();
+        
+        results_file << filename << std::endl;
+
+        // Jeśli chcesz mierzyć konkretne algorytmy:
+        // results_file << "Schrage: ";
+        benchmark(file, schrage, iter, results_file);
+
+        // results_file << "Schrage_Preempt: ";
+        // benchmark(file, schrage_preemptive, iter, results_file);
+        
+        results_file << "---" << std::endl; // Opcjonalny separator między instancjami
+    }
+
+    results_file.close();
+    std::cout << "Wyniki zostały zapisane do pliku wyniki_benchmarku.txt" << std::endl;
+    
+    return 0;
 }
+// int main(int argc, char* argv[]){
+//     if(argc<2){
+//         std::cout<<"Użycie: " << argv[0] <<" <ścieżka do pliku z taskami>"<<std::endl;
+//         return 1;
+//     }
+
+//     int iter = 10;
+//     for (int i = 1; i < argc; ++i) {
+//         std::string arg = argv[i];
+//         std::cout << "BENCHMARK - " << arg << std::endl;
+//         // std::cout << "============== complete search ==============" << std::endl;
+//         // benchmark(arg, complete_search, iter);
+//         std::cout << "============== construction ==============" << std::endl;
+//         benchmark(arg, construction_alg, iter);
+//         std::cout << "============== schrage ==============" << std::endl;
+//         benchmark(arg, schrage, iter);
+//         std::cout << "============== schrage preempt ==============" << std::endl;
+//         benchmark(arg, schrage_preemptive, iter);
+//     }
+// }
+
+
+
