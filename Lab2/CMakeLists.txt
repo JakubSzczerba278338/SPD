@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(SPD VERSION 0.1.0 LANGUAGES CXX)
+project(SPD_1 VERSION 0.1.0 LANGUAGES CXX)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 20)
@@ -17,13 +17,13 @@ set(SOURCES
 )
 
 # Add executable target placeholder. Replace or extend sources as needed.
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(SPD_1 ${SOURCES})
 
 # TODO: add more targets, link libraries, and set include directories
-target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/inc)
+target_include_directories(SPD_1 PRIVATE ${PROJECT_SOURCE_DIR}/inc)
 
-set(TASK_FILES taski317.txt taski291.txt)
+# set(TASK_FILES taski317.txt taski291.txt)
 
-file(COPY ${PROJECT_SOURCE_DIR}/${TASK_FILES}
-     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/
-)
+# file(COPY ${PROJECT_SOURCE_DIR}/${TASK_FILES}
+#      DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/
+# )
