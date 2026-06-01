@@ -18,33 +18,59 @@ void printTaskOrder(const TaskVector& tasks) {
     }
     cout << endl;
 }
+void printCTT(const CTT& ctt, int processors) {
+    size_t N = ctt.size();
+    
+    cout << "   | ";
+    for(size_t pos = 0; pos < N; ++pos) {
+        cout << std::setw(4) << pos + 1 << " | ";
+    }
+    cout << endl;
 
-int calculate_Cmax(const TaskVector& tasks, size_t processors) {
-    size_t N = tasks.size();
-    std::vector<int> completionTimes(N, 0);
-    completionTimes[0] = tasks[0].getJobs()[0];
-    int start_time = 0;
+    cout << "---|-";
+    for(size_t pos = 0; pos < N; ++pos) {
+        cout << "-----|-";
+    }
+    cout << endl;
 
     for(size_t proc = 0; proc < processors; ++proc) {
-        for(size_t i = 0; i < N; ++i) {
-            if(proc == 0){ 
-                if(i > 0) completionTimes[i] = completionTimes[i-1] + tasks[i].getJobs()[proc];
-            }
-            else {
-                start_time = i == 0 ? completionTimes[i] : std::max(completionTimes[i-1], completionTimes[i]);
-                completionTimes[i] = start_time + tasks[i].getJobs()[proc];
-            }        
+        cout << proc + 1 << ". | ";
+        for(size_t pos = 0; pos < N; ++pos) {
+            cout << std::setw(4) << ctt[pos][proc] << " | ";
         }
+        cout << endl;
     }
-    return completionTimes[N-1];
+    cout << endl;
 }
+// int calculate_Cmax(const TaskVector& tasks, size_t processors) {
+//     size_t N = tasks.size();
+//     std::vector<int> completionTimes(N, 0);
+//     completionTimes[0] = tasks[0].getJobs()[0];
+//     int start_time = 0;
 
-int calculate_Cmax(const TaskVector& tasks, size_t processors, CompletionTimesTable& completionTimes, int index) {
+//     for(size_t proc = 0; proc < processors; ++proc) {
+//         for(size_t i = 0; i < N; ++i) {
+//             if(proc == 0){ 
+//                 if(i > 0) completionTimes[i] = completionTimes[i-1] + tasks[i].getJobs()[proc];
+//             }
+//             else {
+//                 start_time = i == 0 ? completionTimes[i] : std::max(completionTimes[i-1], completionTimes[i]);
+//                 completionTimes[i] = start_time + tasks[i].getJobs()[proc];
+//             }        
+//         }
+//     }
+//     return completionTimes[N-1];
+// }
+
+int calculate_Cmax(const TaskVector& tasks, size_t processors, CompletionTimesTable&& completionTimes = CTT(0,std::vector<int>(0,0)), int index = 0) {
     size_t N = tasks.size();
     int start_time = 0;
+    
+    if(completionTimes.size() == 0){
+        completionTimes = CTT(N,std::vector<int>(processors,0));
+    }
 
-    if(index == N - 1) { index = 0; completionTimes[0][0] = tasks[0].getJobs()[0];}
-
+    if(index == N - 1 || index == 0) { index = 0; completionTimes[0][0] = tasks[0].getJobs()[0];}
     for(size_t proc = 0; proc < processors; ++proc) {
         for(size_t pos = index; pos < N; ++pos) {
             if(proc == 0) { 
@@ -56,6 +82,7 @@ int calculate_Cmax(const TaskVector& tasks, size_t processors, CompletionTimesTa
             }        
         }
     }
+    // printCTT(completionTimes, processors);
     return completionTimes[N-1][processors-1];
 }
 
@@ -141,7 +168,7 @@ TaskVector FNEH(TaskVector tasks, size_t processors) {
         for(int j = i; j >= 0; --j) {
             TaskVector temp = solution;
             temp.insert(temp.begin() + j, currentTask);
-            if(int currentCmax = calculate_Cmax(temp, processors, completionTimes, j); currentCmax < minCmax) {
+            if(int currentCmax = calculate_Cmax(temp, processors, std::move(completionTimes), j); currentCmax < minCmax) {
                 minCmax = currentCmax;
                 bestSolution = temp;
             }
@@ -151,30 +178,7 @@ TaskVector FNEH(TaskVector tasks, size_t processors) {
     return solution;
 }
 
-void printCTT(const CTT& ctt, int processors) {
-    size_t N = ctt.size();
-    
-    cout << "   | ";
-    for(size_t pos = 0; pos < N; ++pos) {
-        cout << std::setw(4) << pos + 1 << " | ";
-    }
-    cout << endl;
 
-    cout << "---|-";
-    for(size_t pos = 0; pos < N; ++pos) {
-        cout << "-----|-";
-    }
-    cout << endl;
-
-    for(size_t proc = 0; proc < processors; ++proc) {
-        cout << proc + 1 << ". | ";
-        for(size_t pos = 0; pos < N; ++pos) {
-            cout << std::setw(4) << ctt[pos][proc] << " | ";
-        }
-        cout << endl;
-    }
-    cout << endl;
-}
 
 int main() {
 
