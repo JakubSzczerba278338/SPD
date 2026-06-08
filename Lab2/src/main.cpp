@@ -33,13 +33,13 @@ int main(int argc, char* argv[]) {
     // }
     // TaskVector tasks = {task2, task4, task3, task5, task1};
 
-    TaskVector solution = complete_search(tasks, processors);
+    // TaskVector solution = complete_search(tasks, processors);
     TaskVector sol_NEH = NEH(tasks, processors);
     TaskVector sol_FNEH = FNEH(tasks, processors);
     TaskVector sol_Johnson = johnson(tasks);
     
-    printTaskOrder(solution);
-    cout << calculate_Cmax(solution, processors) << endl;
+    // printTaskOrder(solution);
+    // cout << calculate_Cmax(solution, processors) << endl;
 
     printTaskOrder(sol_NEH);
     cout << calculate_Cmax(sol_NEH, processors) << endl;

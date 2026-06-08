@@ -11,7 +11,12 @@ using std::cout, std::endl;
 
 
 
-bool taskComp(const Task& a, const Task& b) { return a.getJobsSum() < b.getJobsSum();}
+bool taskComp(const Task& a, const Task& b) { 
+    // if (a.getJobsSum() != b.getJobsSum()) {
+        return a.getJobsSum() < b.getJobsSum();
+    // }
+    // return a.getId() < b.getId();
+}
 
 void printTaskOrder(const TaskVector& tasks) {
     for(const auto& task: tasks) {
@@ -43,6 +48,7 @@ void printCTT(const CTT& ctt, int processors) {
     }
     cout << endl;
 }
+
 // int calculate_Cmax(const TaskVector& tasks, size_t processors) {
 //     size_t N = tasks.size();
 //     std::vector<int> completionTimes(N, 0);
@@ -64,6 +70,12 @@ void printCTT(const CTT& ctt, int processors) {
 // }
 
 int calculate_Cmax(const TaskVector& tasks, size_t processors, CompletionTimesTable&& completionTimes, int index) {
+    construct_completionTimes(tasks, processors, completionTimes);
+    // printCTT(completionTimes, processors);
+    return completionTimes[tasks.size()-1][processors-1];
+}
+
+CTT construct_completionTimes(const TaskVector& tasks, size_t processors, CompletionTimesTable& completionTimes,int index) {
     size_t N = tasks.size();
     int start_time = 0;
     
@@ -83,20 +95,24 @@ int calculate_Cmax(const TaskVector& tasks, size_t processors, CompletionTimesTa
             }        
         }
     }
-    // printCTT(completionTimes, processors);
-    return completionTimes[N-1][processors-1];
+    return completionTimes;
+}
+void printSolution(const TaskVector& tVector, int processors) {
+    CTT ctt;
+    construct_completionTimes(tVector, processors, ctt);
+    printCTT(ctt, processors);
 }
 
 TaskVector complete_search(TaskVector tasks, size_t processors){
     std::sort(tasks.begin(),tasks.end(), taskComp);
     int minCmax = calculate_Cmax(tasks, processors);
     TaskVector solution = tasks;
-    
-
     while(std::next_permutation(tasks.begin(), tasks.end(), taskComp)) {
+        printSolution(tasks,  processors);
         if(int currentCmax = calculate_Cmax(tasks, processors); currentCmax < minCmax) {
             minCmax = currentCmax;
             solution = tasks;
+            // printSolution(solution, processors);
         }
     }
     return solution;

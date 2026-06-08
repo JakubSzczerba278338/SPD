@@ -12,8 +12,7 @@ class Task {
     Task(int id) : id(id) {}
     Task(int id, std::vector<int> vector): id(id), jobs(vector)
     {
-        jobsSum = 0;
-        for(const auto& job: jobs) jobsSum += job;
+        setJobsSum();
     }
     ~Task() {}
 
@@ -22,6 +21,8 @@ class Task {
     int getJobsSum() const { return jobsSum;};
     void addJob(int idx,int job_time) { if(idx >= jobs.size()) jobs.push_back(job_time); else jobs[idx] = job_time; }
     void changeId(int Id) {id = Id;}
+    void setJobsSum(){ jobsSum = 0;
+        for(const auto& job: jobs) jobsSum += job;}
 };
 
 
@@ -34,5 +35,6 @@ inline std::istream& operator >> (std::istream& istrm, Task& task){
         line_stream>>value;
         task.addJob(num, value);
     }
+    task.setJobsSum();
     return istrm;
 }
