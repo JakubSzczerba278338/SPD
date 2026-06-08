@@ -13,6 +13,8 @@ endif()
 
 set(SOURCES
     src/main.cpp
+    src/Algorithms.cpp
+    src/Utils.cpp
     # Add more source files here
 )
 
