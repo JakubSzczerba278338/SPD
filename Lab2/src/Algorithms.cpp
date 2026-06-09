@@ -108,11 +108,9 @@ TaskVector complete_search(TaskVector tasks, size_t processors){
     int minCmax = calculate_Cmax(tasks, processors);
     TaskVector solution = tasks;
     while(std::next_permutation(tasks.begin(), tasks.end(), taskComp)) {
-        printSolution(tasks,  processors);
         if(int currentCmax = calculate_Cmax(tasks, processors); currentCmax < minCmax) {
             minCmax = currentCmax;
             solution = tasks;
-            // printSolution(solution, processors);
         }
     }
     return solution;

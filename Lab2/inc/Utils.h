@@ -7,4 +7,4 @@
 
 
 
-int ReadFile(std::string& file,TaskVector& Tasks);
+int ReadFile(std::ifstream& file,TaskVector& Tasks);

@@ -9,7 +9,7 @@ class Task {
     int jobsSum;
 
     public:
-    Task(int id) : id(id) {}
+    Task(int id = -1) : id(id) {}
     Task(int id, std::vector<int> vector): id(id), jobs(vector)
     {
         setJobsSum();
@@ -37,4 +37,12 @@ inline std::istream& operator >> (std::istream& istrm, Task& task){
     }
     task.setJobsSum();
     return istrm;
+}
+
+inline std::ostream& operator <<(std::ostream& ostrm, Task& task){
+
+    for(auto & job : task.getJobs()){
+        ostrm<<job<<" ";
+    }
+    return ostrm;
 }
