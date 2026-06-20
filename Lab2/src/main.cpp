@@ -25,24 +25,35 @@ int main(int argc, char* argv[]) {
     int inst_num{},CMAX{};
     std::chrono::duration<double> elapsed{};
     std::ifstream File{s};
-    File >> inst_num;
-    TaskVector tasks;
-    while(inst_num > 0){
-        int processors = ReadFile(File,tasks);
-        inst_num--;
+    // File >> inst_num;
+    // TaskVector tasks;
+    // while(inst_num > 0){
+    //     int processors = ReadFile(File,tasks);
+    //     inst_num--;
 
-        results_file << (120 - inst_num) << ". " << tasks.size() << ", "<< processors <<std::endl;
+    //     results_file << (16 - inst_num) << ". " << tasks.size() << ", "<< processors <<std::endl;
+
+    //     auto start = std::chrono::high_resolution_clock::now();
+    //     TaskVector sol = GOAT_FNEH(tasks,processors);
+    //     auto end = std::chrono::high_resolution_clock::now();
+    //     elapsed = end - start;
+    //     CMAX = calculate_Cmax(sol, processors);
+    //     results_file<< CMAX << ", "<< elapsed<<std::endl;
+    //     results_file<<"____________________________________________"<<std::endl;
+        
+    // }
+    auto instances = ReadFromFolder(s);
+    for (auto & instance : instances){
+        results_file << instance.filename << ", "<< instance.numMachines <<std::endl;
 
         auto start = std::chrono::high_resolution_clock::now();
-        TaskVector sol = johnson(tasks);
+        TaskVector sol = NEH(instance.tasks, instance.numMachines);
         auto end = std::chrono::high_resolution_clock::now();
         elapsed = end - start;
-        CMAX = calculate_Cmax(sol, processors);
+        CMAX = calculate_Cmax(sol, instance.numMachines);
         results_file<< CMAX << ", "<< elapsed<<std::endl;
         results_file<<"____________________________________________"<<std::endl;
-        
     }
-
 
 
     // Task task1(1, {5,1,2});

@@ -49,25 +49,31 @@ void printCTT(const CTT& ctt, int processors) {
     cout << endl;
 }
 
-// int calculate_Cmax(const TaskVector& tasks, size_t processors) {
-//     size_t N = tasks.size();
-//     std::vector<int> completionTimes(N, 0);
-//     completionTimes[0] = tasks[0].getJobs()[0];
-//     int start_time = 0;
-
-//     for(size_t proc = 0; proc < processors; ++proc) {
-//         for(size_t i = 0; i < N; ++i) {
-//             if(proc == 0){ 
-//                 if(i > 0) completionTimes[i] = completionTimes[i-1] + tasks[i].getJobs()[proc];
-//             }
-//             else {
-//                 start_time = i == 0 ? completionTimes[i] : std::max(completionTimes[i-1], completionTimes[i]);
-//                 completionTimes[i] = start_time + tasks[i].getJobs()[proc];
-//             }        
-//         }
-//     }
-//     return completionTimes[N-1];
+// int calculate_Cmax_FNEH(const TaskVector& tasks, size_t processors, CompletionTimesTable&& completionTimes, int index) {
+//    construct_completionTimes(tasks, processors, completionTimes);
+//     // printCTT(completionTimes, processors);
+//     return completionTimes[tasks.size()-1][processors-1];
 // }
+
+int old_calculate_Cmax(const TaskVector& tasks, size_t processors, CompletionTimesTable& completionTimes, int index) {
+    size_t N = tasks.size();
+    int start_time = 0;
+
+    if(index == N - 1) { index = 0; completionTimes[0][0] = tasks[0].getJobs()[0];}
+
+    for(size_t proc = 0; proc < processors; ++proc) {
+        for(size_t pos = index; pos < N; ++pos) {
+            if(proc == 0) { 
+                if(pos > 0) completionTimes[pos][proc] = completionTimes[pos-1][proc] + tasks[pos].getJobs()[proc];
+            }
+            else {
+                start_time = pos == 0 ? completionTimes[pos][proc-1] : std::max(completionTimes[pos-1][proc], completionTimes[pos][proc-1]);
+                completionTimes[pos][proc] = start_time + tasks[pos].getJobs()[proc];
+            }        
+        }
+    }
+    return completionTimes[N-1][processors-1];
+}
 
 int calculate_Cmax(const TaskVector& tasks, size_t processors, CompletionTimesTable&& completionTimes, int index) {
     construct_completionTimes(tasks, processors, completionTimes);
@@ -190,5 +196,97 @@ TaskVector FNEH(TaskVector tasks, size_t processors) {
         }
         solution = bestSolution;
     }
+    return solution;
+}
+
+// TaskVector OLD_FNEH(TaskVector tasks, size_t processors) {
+//     std::sort(tasks.begin(), tasks.end(), taskComp);
+//     size_t N = tasks.size();
+//     int minCmax;
+//     TaskVector solution;
+//     CTT completionTimes(N, std::vector<int>(processors, 0));
+
+//     solution.reserve(N);
+//     solution.push_back(tasks[0]);
+
+//     TaskVector bestSolution;
+//     bestSolution.reserve(N);
+
+//     for(int i = 1; i < N; ++i) {
+//         minCmax = __INT_MAX__;
+//         Task currentTask = tasks[i];
+//         bestSolution = solution;
+
+//         for(int j = i; j >= 0; --j) {
+//             TaskVector temp = solution;
+//             temp.insert(temp.begin() + j, currentTask);
+//             if(int currentCmax = old_calculate_Cmax(temp, processors, completionTimes, j); currentCmax < minCmax) {
+//                 minCmax = currentCmax;
+//                 bestSolution = temp;
+//             }
+//         }
+//         solution = bestSolution;
+//     }
+//     return solution;
+// }
+
+TaskVector GOAT_FNEH(TaskVector tasks, size_t processors) {
+    std::sort(tasks.begin(), tasks.end(), taskComp);
+    size_t N = tasks.size();
+    
+    TaskVector solution;
+    solution.reserve(N);
+    solution.push_back(tasks[0]);
+
+ 
+    std::vector<std::vector<int>> E(N + 2, std::vector<int>(processors, 0));
+    std::vector<std::vector<int>> Q(N + 2, std::vector<int>(processors, 0));
+    std::vector<int> f(processors, 0); 
+
+    for (size_t i = 1; i < N; ++i) {
+        Task currentTask = tasks[i];
+        
+        
+        for (size_t pos = 0; pos < i; ++pos) {
+            for (size_t proc = 0; proc < processors; ++proc) {
+                int prev_pos = (pos == 0) ? 0 : E[pos][proc];
+                int prev_proc = (proc == 0) ? 0 : E[pos + 1][proc - 1];
+                E[pos + 1][proc] = std::max(prev_pos, prev_proc) + solution[pos].getJobs()[proc];
+            }
+        }
+
+     
+        for (int pos = i - 1; pos >= 0; --pos) {
+            for (int proc = processors - 1; proc >= 0; --proc) {
+                int next_pos = (pos == i - 1) ? 0 : Q[pos + 2][proc];
+                int next_proc = (proc == processors - 1) ? 0 : Q[pos + 1][proc + 1];
+                Q[pos + 1][proc] = std::max(next_pos, next_proc) + solution[pos].getJobs()[proc];
+            }
+        }
+
+        int minCmax = __INT_MAX__;
+        int best_j = 0;
+
+        for (size_t j = 0; j <= i; ++j) {
+            for (size_t proc = 0; proc < processors; ++proc) {
+                int prev_pos = E[j][proc]; // Czas z macierzy "w przód"
+                int prev_proc = (proc == 0) ? 0 : f[proc - 1];
+                f[proc] = std::max(prev_pos, prev_proc) + currentTask.getJobs()[proc];
+            }
+
+            int currentCmax = 0;
+            for (size_t proc = 0; proc < processors; ++proc) {
+                currentCmax = std::max(currentCmax, f[proc] + Q[j + 1][proc]);
+            }
+
+            if (currentCmax < minCmax) {
+                minCmax = currentCmax;
+                best_j = j;
+            }
+        }
+        
+        solution.insert(solution.begin() + best_j, currentTask);
+    }
+
     return solution;
 }
