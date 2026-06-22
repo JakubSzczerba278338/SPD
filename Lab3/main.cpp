@@ -297,7 +297,7 @@ Solution FPTAS(TaskVector tasks, int k){
     return PD(tasks,tasks/k);
 }
 
-// ---- paste your existing code above this line ----
+
 
 struct BenchResult {
     int cmax;
@@ -362,8 +362,7 @@ void runInstance(int m, int N, int pmin, int pmax) {
 
 void runInstancePTAS(int m, int N, int pmin, int pmax) {
     TaskVector tasks = generateTasks(N, pmin, pmax);
-
-    // opt = PD
+    
     Solution pd_sol = PD(tasks);
     int opt = Cmax(pd_sol, m);
 
@@ -372,7 +371,6 @@ void runInstancePTAS(int m, int N, int pmin, int pmax) {
     std::cout << "OPT (PD): " << opt << "\n";
     std::cout << std::string(50, '-') << "\n";
 
-    // PTAS k = n/2, 2n/3, 3n/4
     std::vector<std::pair<int,int>> ptas_fracs = {{1,2},{2,3},{3,4}};
     for (auto [num, den] : ptas_fracs) {
         int k = std::max(1, N * num / den);
