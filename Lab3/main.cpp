@@ -1,10 +1,12 @@
 #include <algorithm>
-#include <cmath>
-#include <cstdint>
+#include <chrono>
+#include <functional>
+#include <iomanip>
 #include <iostream>
-#include <vector>
 #include <numeric>
-
+#include <random>
+#include <string>
+#include <vector>
 
 using TaskVector = std::vector<int>;
 using Solution = std::vector<std::pair<int,int>>;
@@ -295,23 +297,113 @@ Solution FPTAS(TaskVector tasks, int k){
     return PD(tasks,tasks/k);
 }
 
+// ---- paste your existing code above this line ----
 
-int main(){
-    TaskVector V{2, 5,  3, 5, 8};
-    int processors = 2;
+struct BenchResult {
+    int cmax;
+    double time_ms;
+};
 
-    std::cout<< "SUM: " <<std::accumulate(V.begin(),V.end(),0) << std::endl;
-    Solution sol;
-    sol =  PD(V);
-    std::cout<<"PD -- Cmax: "<<Cmax(sol, processors)<<": "<<sol<<std::endl;
-    sol =  LSA(V,processors);
-    std::cout<<"LSA -- Cmax: "<<Cmax(sol, processors)<<": "<<sol<<std::endl;
-    sol =  LPT(V,processors);
-    std::cout<<"LPT -- Cmax: "<<Cmax(sol, processors)<<": "<<sol<<std::endl;
-    sol = CS(V);
-    std::cout<<"CS -- Cmax: "<<Cmax(sol, processors)<<": "<<sol<<std::endl;
-    sol = PTAS(V,3);
-    std::cout<<"PTAS -- Cmax: "<<Cmax(sol, processors)<<": "<<sol<<std::endl;
-    sol = FPTAS(V,2);
-    std::cout<<"FPTAS -- Cmax: "<<Cmax(sol, processors)<<": "<<sol<<std::endl;
+BenchResult benchmark(const std::string& name,
+                      std::function<Solution(TaskVector)> algo,
+                      const TaskVector& tasks,
+                      int processors,
+                      int opt_cmax = -1)
+{
+    auto t0 = std::chrono::high_resolution_clock::now();
+    Solution sol = algo(tasks);
+    auto t1 = std::chrono::high_resolution_clock::now();
+
+    int cmax = Cmax(sol, processors);
+    double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
+
+    double err = (opt_cmax > 0)
+        ? 100.0 * (cmax - opt_cmax) / opt_cmax
+        : 0.0;
+
+    std::cout << std::left  << std::setw(12) << name
+              << std::right << std::setw(8)  << cmax;
+    if (opt_cmax > 0)
+        std::cout << " [" << std::fixed << std::setprecision(1) << std::setw(6) << err << "%]";
+    else
+        std::cout << "         ";
+    std::cout << "   " << std::fixed << std::setprecision(4) << ms << " ms\n";
+
+    return {cmax, ms};
+}
+
+TaskVector generateTasks(int N, int pmin, int pmax, unsigned seed = 42) {
+    std::mt19937 rng(seed);
+    std::uniform_int_distribution<int> dist(pmin, pmax);
+    TaskVector v(N);
+    std::generate(v.begin(), v.end(), [&]{ return dist(rng); });
+    return v;
+}
+
+void runInstance(int m, int N, int pmin, int pmax) {
+    TaskVector tasks = generateTasks(N, pmin, pmax);
+
+    std::cout << "\n=== m=" << m << " N=" << N
+              << " p=[" << pmin << "-" << pmax << "] ===\n";
+    std::cout << "Tasks: " << tasks << "\n";
+    std::cout << std::string(50, '-') << "\n";
+
+    auto pd_res = benchmark("PD", [](TaskVector t){ return PD(t); }, tasks, m);
+    int opt = pd_res.cmax;
+
+    if (N <= 25)
+        benchmark("CS", [](TaskVector t){ return CS(t); }, tasks, m, opt);
+    else
+        std::cout << "CS           N/A (N>25)\n";
+
+    benchmark("LSA", [m](TaskVector t){ return LSA(t, m); }, tasks, m, opt);
+    benchmark("LPT", [m](TaskVector t){ return LPT(t, m); }, tasks, m, opt);
+}
+
+void runInstancePTAS(int m, int N, int pmin, int pmax) {
+    TaskVector tasks = generateTasks(N, pmin, pmax);
+
+    // opt = PD
+    Solution pd_sol = PD(tasks);
+    int opt = Cmax(pd_sol, m);
+
+    std::cout << "\n=== m=" << m << " N=" << N
+              << " p=[" << pmin << "-" << pmax << "] ===\n";
+    std::cout << "OPT (PD): " << opt << "\n";
+    std::cout << std::string(50, '-') << "\n";
+
+    // PTAS k = n/2, 2n/3, 3n/4
+    std::vector<std::pair<int,int>> ptas_fracs = {{1,2},{2,3},{3,4}};
+    for (auto [num, den] : ptas_fracs) {
+        int k = std::max(1, N * num / den);
+        if (k >= 25) {
+            std::cout << "PTAS k=" << k << " (=" << num << "n/" << den
+                      << ")   N/A (k>=25, 2^k niewykonalne)\n";
+            continue;
+        }
+        std::string label = "PTAS " + std::to_string(num) + "n/"
+                          + std::to_string(den) + " k=" + std::to_string(k);
+        benchmark(label, [k](TaskVector t){ return PTAS(t, k); },
+                  tasks, m, opt);
+    }
+
+    std::cout << std::string(50, '-') << "\n";
+
+    // FPTAS K = 2, 3, 4
+    for (int K : {2, 3, 4}) {
+        std::string label = "FPTAS K=" + std::to_string(K);
+        benchmark(label, [K](TaskVector t){ return FPTAS(t, K); },
+                  tasks, m, opt);
+    }
+}
+
+int main() {
+    runInstancePTAS(2, 10,  1,  10);
+    runInstancePTAS(2, 10, 10,  20);
+    runInstancePTAS(2, 20,  1,  10);
+    runInstancePTAS(2, 20, 10,  20);
+    runInstancePTAS(2, 20, 50, 100);
+    runInstancePTAS(2, 50,  1,  10);
+    runInstancePTAS(2, 50, 10,  20);
+    runInstancePTAS(2, 50, 50, 100);
 }
